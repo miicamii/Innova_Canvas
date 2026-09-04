@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INNOVA-CANVAS · Cocreación de modelos de negocio</title>
+<style>
+:root{
+  --red:#d0311f;
+  --red-dark:#a8260f;
+  --ink:#141414;
+  --paper:#f5f4f1;
+  --panel:#ffffff;
+  --line:#dcd8d1;
+  --line-strong:#141414;
+  --grey:#8a857c;
+  --grey-light:#efece6;
+  font-family:"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);}
+body{-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;}
+input,textarea,select{font-family:inherit;}
+.eyebrow{
+  color:var(--red);font-size:11px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.hidden{display:none !important;}
+a{color:var(--red);}
+
+/* ---------- SETUP SCREEN ---------- */
+#setup-view{
+  min-height:100vh;display:flex;align-items:flex-start;justify-content:center;
+  padding:64px 24px;
+}
+.setup-wrap{max-width:920px;width:100%;}
+.setup-wrap h1{
+  font-size:56px;letter-spacing:-.02em;margin:8px 0 12px;font-weight:800;
+}
+.setup-wrap p.lead{
+  color:#3a3733;max-width:640px;line-height:1.5;font-size:15px;margin-bottom:36px;
+}
+.setup-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line-strong);
+}
+.setup-col{padding:28px 30px;}
+.setup-col + .setup-col{border-left:1px solid var(--line-strong);}
+.setup-col h2{
+  font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  margin:0 0 20px;color:var(--ink);
+}
+.field{margin-bottom:16px;}
+.field label{
+  display:block;font-size:11px;color:var(--grey);margin-bottom:5px;text-transform:none;
+}
+.field input,.field select{
+  width:100%;padding:9px 10px;border:1px solid var(--line);background:#fff;
+  font-size:14px;color:var(--ink);
+}
+.field input:focus,.field select:focus{outline:2px solid var(--red);outline-offset:-1px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{
+  border:none;padding:11px 18px;font-size:13px;font-weight:700;letter-spacing:.02em;
+  border-radius:2px;
+}
+.btn-primary{background:var(--red);color:#fff;}
+.btn-primary:hover{background:var(--red-dark);}
+.btn-outline{background:#fff;border:1px solid var(--line-strong);color:var(--ink);}
+.btn-outline:hover{background:var(--grey-light);}
+.btn-text{background:none;border:none;color:var(--red);font-weight:700;font-size:12px;padding:8px 0;}
+.setup-actions{margin-top:6px;}
+.help-note{font-size:11.5px;color:var(--grey);line-height:1.5;margin-top:14px;}
+.setup-status{font-size:12px;margin-top:10px;min-height:16px;}
+.setup-status.ok{color:#1e7a35;}
+.setup-status.err{color:var(--red);}
+.sql-link{background:none;border:none;color:var(--red);text-decoration:underline;font-weight:700;font-size:12.5px;padding:0;}
+
+/* ---------- BOARD VIEW ---------- */
+#board-view{display:flex;flex-direction:column;min-height:100vh;}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 22px;border-bottom:1px solid var(--line-strong);background:#fff;
+  flex-wrap:wrap;gap:10px;
+}
+.topbar-left{display:flex;align-items:baseline;gap:14px;}
+.wordmark{font-weight:800;font-size:19px;letter-spacing:-.01em;}
+.room-tag{font-size:11px;color:var(--grey);letter-spacing:.06em;text-transform:uppercase;}
+.mode-pill{
+  font-size:10px;font-weight:700;letter-spacing:.08em;padding:2px 7px;border-radius:9px;
+  text-transform:uppercase;
+}
+.mode-pill.local{background:var(--grey-light);color:var(--grey);}
+.mode-pill.live{background:#e4f4e8;color:#1e7a35;}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.presence{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--grey);letter-spacing:.06em;text-transform:uppercase;}
+.avatars{display:flex;}
+.avatar{
+  width:26px;height:26px;border-radius:50%;background:var(--ink);color:#fff;
+  font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;margin-left:-8px;
+}
+.avatars .avatar:first-child{margin-left:0;}
+.save-status{font-size:11px;color:var(--grey);}
+.save-status.ready{color:#1e7a35;font-weight:700;}
+
+.modelbar{
+  padding:14px 22px 8px;background:#fff;border-bottom:1px solid var(--line);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;
+}
+.model-name-wrap .eyebrow{margin-bottom:4px;display:block;}
+#model-name-input{
+  border:none;background:none;font-size:24px;font-weight:800;color:var(--ink);
+  padding:2px 0;min-width:280px;
+}
+#model-name-input:focus{outline:none;border-bottom:1px solid var(--red);}
+.stat-line{font-size:11px;color:var(--grey);margin-top:2px;}
+
+.controls-row{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;
+  padding:14px 22px;background:#fff;border-bottom:1px solid var(--line-strong);
+}
+.control-group{display:flex;flex-direction:column;gap:6px;}
+.control-group .glabel{font-size:10px;color:var(--grey);letter-spacing:.08em;text-transform:uppercase;}
+.seg{display:flex;border:1px solid var(--line-strong);}
+.seg button{
+  background:#fff;border:none;padding:7px 14px;font-size:11px;font-weight:700;
+  letter-spacing:.05em;color:var(--ink);border-right:1px solid var(--line-strong);
+}
+.seg button:last-child{border-right:none;}
+.seg button.active{background:var(--red);color:#fff;}
+.seg button:not(.active):hover{background:var(--grey-light);}
+
+.step-banner{
+  background:var(--paper);border-bottom:1px solid var(--line);padding:10px 22px;
+  font-size:12.5px;line-height:1.5;
+}
+.step-banner b{color:var(--red);text-transform:uppercase;font-size:11px;letter-spacing:.06em;margin-right:8px;}
+
+.board-body{display:flex;flex:1;min-height:0;}
+.canvas-wrap{flex:1;padding:18px 18px 40px;overflow:auto;position:relative;}
+.canvas-grid{
+  display:grid;
+  grid-template-columns:repeat(10,minmax(90px,1fr));
+  grid-template-rows:150px 150px 110px;
+  gap:0;border:1px solid var(--line-strong);position:relative;min-width:920px;
+}
+.block{
+  border-right:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
+  padding:10px 11px 8px;position:relative;background:#fff;overflow:hidden;
+  display:flex;flex-direction:column;transition:background .12s;
+}
+.block.dim{background:#fbfaf8;}
+.block.hoverlit{background:#fff6f4;}
+.block-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;}
+.block-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.25;}
+.block-desc{font-size:9.5px;color:var(--grey);line-height:1.3;margin-top:2px;}
+.block-add{
+  border:none;background:var(--red);color:#fff;width:17px;height:17px;border-radius:50%;
+  font-size:12px;line-height:1;flex:0 0 auto;font-weight:700;
+}
+.block-items{margin-top:8px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;flex:1;}
+.note{
+  background:#fff;border:1px solid var(--line);border-left:3px solid var(--red);
+  padding:5px 7px;font-size:11.5px;line-height:1.35;cursor:pointer;
+}
+.note:hover{border-color:var(--ink);}
+.note.selected{border-left-color:var(--ink);background:#f5f4f1;}
+.note .note-meta{font-size:9px;color:var(--grey);margin-top:3px;}
+.svg-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.svg-overlay line{stroke:var(--red);stroke-width:1.4;}
+.svg-overlay circle{fill:var(--red);}
+
+/* sidebar */
+.sidebar{
+  width:340px;flex:0 0 340px;border-left:1px solid var(--line-strong);background:#fff;
+  display:flex;flex-direction:column;min-height:0;
+}
+.tabs{display:flex;border-bottom:1px solid var(--line-strong);}
+.tabs button{
+  flex:1;background:#fff;border:none;padding:11px 4px;font-size:10.5px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--grey);border-right:1px solid var(--line);
+}
+.tabs button:last-child{border-right:none;}
+.tabs button.active{color:var(--red);box-shadow:inset 0 -2px 0 var(--red);}
+.tab-panel{flex:1;overflow-y:auto;padding:16px 16px 24px;display:none;}
+.tab-panel.active{display:block;}
+.panel-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;}
+.panel-sub{font-size:10.5px;color:var(--grey);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;}
+.empty-msg{font-size:12px;color:var(--grey);padding:10px 0;line-height:1.5;}
+
+/* detalle */
+.selected-block-name{font-size:16px;font-weight:800;margin-bottom:2px;}
+.selected-block-desc{font-size:11.5px;color:var(--grey);margin-bottom:14px;line-height:1.4;}
+textarea.mini{
+  width:100%;border:1px solid var(--line);padding:8px;font-size:12.5px;resize:vertical;min-height:52px;
+}
+select.mini,input.mini{width:100%;border:1px solid var(--line);padding:7px 8px;font-size:12.5px;}
+.form-block{margin-bottom:16px;border-top:1px solid var(--line);padding-top:12px;}
+.btn-mini{
+  background:var(--ink);color:#fff;border:none;padding:7px 12px;font-size:11px;font-weight:700;margin-top:8px;
+}
+.btn-mini:hover{background:var(--red);}
+.item-row{border:1px solid var(--line);padding:8px 9px;margin-bottom:7px;font-size:12px;position:relative;}
+.item-row .meta{font-size:9.5px;color:var(--grey);margin-top:4px;}
+.item-row .del{
+  position:absolute;top:6px;right:7px;background:none;border:none;color:var(--grey);font-size:13px;
+}
+.item-row .del:hover{color:var(--red);}
+.rel-desc{font-size:11px;color:#3a3733;margin-top:3px;font-style:italic;}
+
+/* chat + blog */
+.msg{margin-bottom:12px;}
+.msg .who{font-size:10.5px;font-weight:700;}
+.msg .who span{font-weight:400;color:var(--grey);text-transform:none;font-size:10px;}
+.msg .body{font-size:12.5px;line-height:1.4;margin-top:2px;}
+.chat-input-row{display:flex;gap:6px;margin-top:10px;border-top:1px solid var(--line);padding-top:10px;}
+.chat-input-row input{flex:1;border:1px solid var(--line);padding:8px;font-size:12.5px;}
+.chat-input-row button{background:var(--red);color:#fff;border:none;padding:0 14px;font-weight:700;font-size:12px;}
+
+/* guia */
+.guide-q{
+  border-left:2px solid var(--red);padding:6px 0 6px 10px;margin-bottom:9px;font-size:12.5px;line-height:1.4;
+}
+.guide-step-label{
+  display:inline-block;background:var(--ink);color:#fff;font-size:9.5px;padding:2px 7px;
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;font-weight:700;
+}
+
+/* datos */
+.kv{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid var(--line);}
+.kv b{font-weight:700;}
+.datos-actions{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+
+/* modal */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(20,20,20,.55);display:flex;align-items:center;
+  justify-content:center;z-index:50;padding:20px;
+}
+.modal{
+  background:#fff;max-width:640px;width:100%;max-height:82vh;overflow-y:auto;
+  border:1px solid var(--line-strong);padding:26px 28px;
+}
+.modal h3{margin-top:0;font-size:16px;}
+.modal pre{
+  background:var(--paper);border:1px solid var(--line);padding:14px;font-size:11px;
+  overflow-x:auto;line-height:1.5;white-space:pre-wrap;word-break:break-word;
+}
+.modal .close-row{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
+.toast{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;
+  padding:10px 18px;font-size:12.5px;border-radius:2px;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.2);
+}
+
+@media (max-width:880px){
+  .setup-grid{grid-template-columns:1fr;}
+  .setup-col + .setup-col{border-left:none;border-top:1px solid var(--line-strong);}
+  .board-body{flex-direction:column;}
+  .sidebar{width:100%;flex:0 0 auto;border-left:none;border-top:1px solid var(--line-strong);}
+}
+</style>
+</head>
+<body>
+
+<!-- =============== SETUP VIEW =============== -->
+<div id="setup-view">
+  <div class="setup-wrap">
+    <span class="eyebrow">Cocreación de modelos de negocio</span>
+    <h1>INNOVA-CANVAS</h1>
+    <p class="lead">
+      Tablero de los nueve bloques de la ontología de Osterwalder para trabajo simultáneo de un
+      equipo real: aportes sobre el tablero, chat, blog por bloque, relaciones argumentadas entre
+      elementos y archivos de apoyo. Complementa el ejercicio presencial alrededor del tablero.
+    </p>
+
+    <div class="setup-grid">
+      <div class="setup-col">
+        <h2>1. Entra a la sala del equipo</h2>
+        <div class="field">
+          <label for="in-name">Tu nombre real</label>
+          <input id="in-name" type="text" placeholder="Ej. Carla Pérez">
+        </div>
+        <div class="field">
+          <label for="in-role">Tu rol en el ejercicio</label>
+          <input id="in-role" type="text" placeholder="Ej. MKT, Finanzas, Operaciones...">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="in-code">Código de la sala</label>
+            <input id="in-code" type="text" placeholder="EQUIPO-01">
+          </div>
+          <div class="field">
+            <label for="in-team">Equipo</label>
+            <input id="in-team" type="text" placeholder="Ej. Equipo 3">
+          </div>
+        </div>
+        <div class="field">
+          <label for="in-model">Modelo de negocio que van a diseñar</label>
+          <input id="in-model" type="text" placeholder="Ej. Hospitalización domiciliaria">
+        </div>
+        <div class="setup-actions">
+          <button class="btn btn-primary" id="btn-enter">Entrar al tablero</button>
+        </div>
+        <p class="help-note">
+          Todos los que entren con el mismo código de sala trabajan sobre el mismo tablero.
+          Comparte el enlace con el código de sala a tus compañeros.
+        </p>
+      </div>
+
+      <div class="setup-col">
+        <h2>2. Sincronización real (Supabase)</h2>
+        <div class="field">
+          <label for="in-url">Project URL</label>
+          <input id="in-url" type="text" placeholder="https://xxxxxxxx.supabase.co">
+        </div>
+        <div class="field">
+          <label for="in-key">Anon public key</label>
+          <input id="in-key" type="text" placeholder="eyJhbGciOi...">
+        </div>
+        <div class="setup-actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-outline" id="btn-save-creds">Guardar credenciales</button>
+          <button class="sql-link" id="btn-show-sql">Ver SQL de la tabla</button>
+        </div>
+        <div class="setup-status" id="creds-status"></div>
+        <p class="help-note">
+          Pega los datos de tu proyecto de Supabase para que varios participantes trabajen a la vez
+          desde distintos computadores. Sin ellos, la sala funciona solo en este navegador y guarda
+          localmente.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =============== BOARD VIEW =============== -->
+<div id="board-view" class="hidden">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="wordmark">INNOVA-CANVAS</span>
+      <span class="room-tag" id="room-tag">SALA —</span>
+      <span class="mode-pill local" id="mode-pill">LOCAL</span>
+    </div>
+    <div class="topbar-right">
+      <div class="presence">
+        <span>En la sala</span>
+        <div class="avatars" id="avatars"></div>
+      </div>
+      <span class="save-status" id="save-status"></span>
+      <button class="btn btn-primary" id="btn-save-share">Guardar y compartir</button>
+    </div>
+  </div>
+
+  <div class="modelbar">
+    <div class="model-name-wrap">
+      <span class="eyebrow">Modelo de negocio</span>
+      <input id="model-name-input" type="text" value="Modelo de negocio sin título">
+      <div class="stat-line" id="stat-line">0 elementos · 0 relaciones</div>
+    </div>
+  </div>
+
+  <div class="controls-row">
+    <div class="control-group">
+      <span class="glabel">Paso</span>
+      <div class="seg" id="step-seg">
+        <button data-step="visualizar" class="active">Visualizar</button>
+        <button data-step="evaluar">Evaluar</button>
+        <button data-step="innovar">Innovar</button>
+      </div>
+    </div>
+    <div class="control-group">
+      <span class="glabel">Relaciones</span>
+      <div class="seg" id="rel-seg">
+        <button data-mode="ocultas">Ocultas</button>
+        <button data-mode="hover" class="active">Al pasar el puntero</button>
+        <button data-mode="todas">Todas</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-banner" id="step-banner"></div>
+
+  <div class="board-body">
+    <div class="canvas-wrap">
+      <div class="canvas-grid" id="canvas-grid">
+        <svg class="svg-overlay" id="svg-overlay"></svg>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="tabs">
+        <button data-tab="detalle" class="active">Detalle</button>
+        <button data-tab="chat">Chat</button>
+        <button data-tab="blog">Blog</button>
+        <button data-tab="guia">Guía</button>
+        <button data-tab="datos">Datos</button>
+      </div>
+
+      <div class="tab-panel active" id="tab-detalle"></div>
+      <div class="tab-panel" id="tab-chat"></div>
+      <div class="tab-panel" id="tab-blog"></div>
+      <div class="tab-panel" id="tab-guia"></div>
+      <div class="tab-panel" id="tab-datos"></div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+
+<script type="module">
+/* =========================================================================
+   INNOVA-CANVAS
+   App de cocreación de modelos de negocio (9 bloques de Osterwalder)
+   Funciona en modo LOCAL (localStorage) o sincronizado con Supabase.
+   ========================================================================= */
+
+/* ---------------- Definición de bloques ---------------- */
+const BLOCKS = [
+  {id:'aliados',    name:'Red de aliados',
+    desc:'Aliados y proveedores en los que se apoya la oferta.',        col:'1 / 3', row:'1 / 3'},
+  {id:'actividades',name:'Actividades clave',
+    desc:'Lo que se hace con los recursos para producir la oferta.',     col:'3 / 5', row:'1 / 2'},
+  {id:'recursos',   name:'Recursos clave',
+    desc:'Físicos, intelectuales, humanos y financieros.',               col:'3 / 5', row:'2 / 3'},
+  {id:'propuesta',  name:'Propuesta de valor',
+    desc:'El paquete de productos y servicios y sus atributos.',         col:'5 / 7', row:'1 / 3'},
+  {id:'relaciones', name:'Relaciones con clientes',
+    desc:'Tipo de relación por segmento y etapa del ciclo.',             col:'7 / 9', row:'1 / 2'},
+  {id:'canales',    name:'Canales de distribución y comunicación',
+    desc:'Cómo se llega a los clientes y se comunica la oferta.',        col:'7 / 9', row:'2 / 3'},
+  {id:'segmentos',  name:'Segmentos de clientes',
+    desc:'Tipos de cliente a los que se dirige la oferta.',              col:'9 / 11', row:'1 / 3'},
+  {id:'costos',     name:'Estructura de costos',
+    desc:'Los costos más significativos del modelo.',                    col:'1 / 6', row:'3 / 4'},
+  {id:'ingresos',   name:'Fuentes de ingresos',
+    desc:'Transacciones, suscripciones, licenciamiento, pauta…',         col:'6 / 11', row:'3 / 4'},
+];
+const BLOCK_BY_ID = Object.fromEntries(BLOCKS.map(b=>[b.id,b]));
+
+/* ---------------- Pasos ---------------- */
+const STEPS = {
+  visualizar:{
+    label:'Visualizar',
+    banner:'Describan el modelo llenando cada bloque: cada elemento se codifica con una palabra o frase corta y se amplía en su descripción. Registren también las relaciones entre elementos.'
+  },
+  evaluar:{
+    label:'Evaluar',
+    banner:'Cuestionen el modelo: anoten fortalezas y debilidades de cada bloque o del conjunto, apoyándose en criterios objetivos e información real, no solo en percepciones.'
+  },
+  innovar:{
+    label:'Innovar',
+    banner:'Hagan lluvia de ideas sobre mejoras y oportunidades a partir de las preguntas guía. No filtren aún por viabilidad: el objetivo es generar varios prototipos de modelo para luego priorizar.'
+  }
+};
+
+/* ---------------- Preguntas guía (adaptadas de Osterwalder) ---------------- */
+const GUIDE = {
+  visualizar:{
+    aliados:['¿Quiénes son los aliados y proveedores estratégicos del modelo?',
+             '¿Qué actividades convendría apalancar en terceros para acelerar el ciclo de innovación?'],
+    actividades:['¿Cuáles son las actividades y procesos clave que producen la oferta?',
+                 '¿Cuáles son las competencias esenciales que no se pueden delegar?'],
+    recursos:['¿Qué recursos físicos, intelectuales, humanos y financieros hacen funcionar el modelo?',
+              '¿Cuáles de esos recursos son propios, arrendados o adquiridos de aliados?'],
+    propuesta:['¿Qué paquete de productos y servicios se ofrece y cuáles son sus atributos principales?',
+               '¿Por qué el cliente está dispuesto a pagar por esta oferta?'],
+    relaciones:['¿Qué tipo de relación se construye con cada segmento: personalizada, masiva o automatizada?',
+                '¿Qué pasa en preventa, venta, postventa y en la migración a nuevas ofertas?'],
+    canales:['¿A través de qué canales se accede y se comunica la oferta a los clientes?',
+             '¿Cómo se combinan fuerza de ventas, puntos de venta, web u otros canales?'],
+    segmentos:['¿Quiénes son los clientes y cómo se agrupan por necesidades comunes?',
+               '¿En qué se diferencian los distintos segmentos entre sí?'],
+    costos:['¿Cuáles son los costos más significativos del modelo?',
+            '¿Qué recursos, actividades o aliados generan la mayor parte del costo?'],
+    ingresos:['¿Cómo se generan los ingresos: transacciones, suscripciones, licenciamiento, pauta…?',
+              '¿Qué está dispuesto a pagar el cliente por cada elemento de la oferta?'],
+  },
+  evaluar:{
+    aliados:['¿Se trabaja lo suficiente con los aliados y proveedores actuales?',
+             '¿Qué tanto depende el modelo de esos socios?'],
+    actividades:['¿Qué tan eficiente es la ejecución de las actividades clave?',
+                 '¿Se están haciendo internamente demasiadas actividades, perdiendo foco?'],
+    recursos:['¿Se cuenta con los recursos adecuados en calidad y cantidad?',
+              '¿Hay recursos internos de más que generan falta de enfoque?'],
+    propuesta:['¿La propuesta de valor sigue satisfaciendo bien las necesidades del cliente?',
+               '¿Se sabe cómo perciben los clientes esta oferta frente a la competencia?'],
+    relaciones:['¿Existe una estrategia clara de relacionamiento con los clientes?',
+                '¿Se invierte demasiado tiempo o dinero en relaciones poco rentables?'],
+    canales:['¿El diseño de canales llega bien a los clientes?',
+             '¿Qué tan integrados y eficientes en costo son los canales actuales?'],
+    segmentos:['¿Se conocen bien las necesidades de cada segmento?',
+               '¿Hay riesgo de perder algún grupo de clientes pronto?'],
+    costos:['¿La estructura de costos es adecuada y eficiente?',
+            '¿Es claro qué parte del negocio concentra los mayores costos?'],
+    ingresos:['¿Qué tan estables y diversificadas son las fuentes de ingreso?',
+              '¿El modelo depende demasiado de pocas fuentes o clientes?'],
+  },
+  innovar:{
+    aliados:['¿Qué aliados podrían ayudar a complementar la propuesta de valor?',
+             '¿Qué proveedores podrían ayudar a optimizar el modelo?'],
+    actividades:['¿Hay actividades que convendría encargar a un aliado?',
+                 '¿Cómo se podrían optimizar las actividades actuales?'],
+    recursos:['¿Hay recursos de los que se podría prescindir o sustituir?',
+              '¿Qué recursos clave podrían ser provistos más eficientemente por aliados?'],
+    propuesta:['¿Es posible ofrecer soluciones más a la medida por segmento?',
+               '¿Se puede complementar la oferta mediante acuerdos con aliados?'],
+    relaciones:['¿Qué nivel de personalización requiere cada relación: dedicada o autoservicio?'],
+    canales:['¿Se puede ampliar la base de clientes usando mejor los canales existentes?',
+             '¿Conviene introducir nuevos canales de distribución o comunicación?'],
+    segmentos:['¿Existen nuevos segmentos de clientes que valga la pena atender?',
+               '¿Se pueden reagrupar mejor los segmentos según sus necesidades?'],
+    costos:['¿Existe alguna forma de reducir la estructura de costos actual?'],
+    ingresos:['¿Se pueden introducir nuevos flujos de ingreso, por ejemplo alquilar en vez de vender?',
+              '¿Hay oportunidad de más ventas cruzadas con productos propios o de aliados?'],
+  }
+};
+
+/* ---------------- SQL de referencia para Supabase ---------------- */
+const SQL_SCHEMA = `-- INNOVA-CANVAS · esquema para Supabase
+create extension if not exists pgcrypto;
+
+create table if not exists ic_rooms (
+  room_code text primary key,
+  team text,
+  model_name text,
+  ready boolean default false,
+  ready_by text,
+  ready_at timestamptz,
+  updated_at timestamptz default now()
+);
+
+create table if not exists ic_elements (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null,
+  step text not null,
+  block text not null,
+  content text not null,
+  author text,
+  role text,
+  created_at timestamptz default now()
+);
+
+create table if not exists ic_relations (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null,
+  step text not null,
+  from_id uuid not null,
+  to_id uuid not null,
+  description text,
+  author text,
+  created_at timestamptz default now()
+);
+
+create table if not exists ic_chat (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null,
+  author text,
+  role text,
+  content text not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists ic_blog (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null,
+  block text not null,
+  author text,
+  role text,
+  content text not null,
+  created_at timestamptz default now()
+);
+
+create table if not exists ic_attachments (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null,
+  block text not null,
+  step text,
+  name text not null,
+  url text,
+  note text,
+  author text,
+  created_at timestamptz default now()
+);
+
+alter table ic_rooms        enable row level security;
+alter table ic_elements     enable row level security;
+alter table ic_relations    enable row level security;
+alter table ic_chat         enable row level security;
+alter table ic_blog         enable row level security;
+alter table ic_attachments  enable row level security;
+
+-- Políticas abiertas para uso académico con la anon key.
+-- Ajusta esto si necesitas restringir el acceso por sala o por usuario autenticado.
+create policy "anon all ic_rooms"       on ic_rooms       for all using (true) with check (true);
+create policy "anon all ic_elements"    on ic_elements    for all using (true) with check (true);
+create policy "anon all ic_relations"   on ic_relations   for all using (true) with check (true);
+create policy "anon all ic_chat"        on ic_chat        for all using (true) with check (true);
+create policy "anon all ic_blog"        on ic_blog        for all using (true) with check (true);
+create policy "anon all ic_attachments" on ic_attachments for all using (true) with check (true);
+
+alter publication supabase_realtime add table
+  ic_rooms, ic_elements, ic_relations, ic_chat, ic_blog, ic_attachments;
+`;
+
+/* ---------------- Estado global ---------------- */
+let state = {
+  user:{name:'', role:''},
+  roomCode:'', team:'', modelName:'Modelo de negocio sin título',
+  step:'visualizar',
+  relMode:'hover',
+  activeTab:'detalle',
+  selectedBlock:'aliados',
+  selectedElement:null,
+  hoveredBlock:null,
+  elements:[],      // {id, room_code, step, block, content, author, role, created_at}
+  relations:[],     // {id, room_code, step, from_id, to_id, description, author, created_at}
+  chat:[],          // {id, room_code, author, role, content, created_at}
+  blog:[],          // {id, room_code, block, author, role, content, created_at}
+  attachments:[],   // {id, room_code, block, step, name, url, note, author, created_at}
+  room:{ready:false, ready_by:null, ready_at:null},
+};
+
+let supa = null;          // cliente Supabase (si hay credenciales)
+let presenceChannel = null;
+let onlineUsers = [];     // [{name, role}]
+let uid = crypto.randomUUID();
+
+const LS_PREFIX = 'innova-canvas:';
+
+/* ---------------- Utilidades ---------------- */
+function el(html){
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+}
+function fmtTime(ts){
+  try{ return new Date(ts).toLocaleString('es-CO',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'}); }
+  catch(e){ return ''; }
+}
+function initials(name){
+  if(!name) return '??';
+  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
+}
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(msg){
+  const t = el(`<div class="toast">${escapeHtml(msg)}</div>`);
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2600);
+}
+
+/* ---------------- Persistencia LOCAL ---------------- */
+function localKey(){ return LS_PREFIX + state.roomCode; }
+function saveLocal(){
+  const payload = {
+    modelName: state.modelName, team: state.team,
+    elements: state.elements, relations: state.relations,
+    chat: state.chat, blog: state.blog, attachments: state.attachments,
+    room: state.room,
+  };
+  localStorage.setItem(localKey(), JSON.stringify(payload));
+}
+function loadLocal(){
+  const raw = localStorage.getItem(localKey());
+  if(!raw) return;
+  try{
+    const data = JSON.parse(raw);
+    state.modelName = data.modelName || state.modelName;
+    state.team = data.team || state.team;
+    state.elements = data.elements || [];
+    state.relations = data.relations || [];
+    state.chat = data.chat || [];
+    state.blog = data.blog || [];
+    state.attachments = data.attachments || [];
+    state.room = data.room || state.room;
+  }catch(e){ /* ignore */ }
+}
+// sincroniza entre pestañas del mismo navegador en modo local
+window.addEventListener('storage', (e)=>{
+  if(e.key === localKey() && !supa){
+    loadLocal();
+    renderAll();
+  }
+});
+
+/* ---------------- Conexión Supabase ---------------- */
+async function connectSupabase(url, key){
+  try{
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+    const client = createClient(url, key);
+    // ping simple
+    const { error } = await client.from('ic_rooms').select('room_code').limit(1);
+    if(error && error.code !== 'PGRST116') {
+      // PGRST116 = no rows, eso está bien. Otros errores probablemente = tablas no creadas.
+      if(!/relation .* does not exist/i.test(error.message||'')){
+        // sigue intentando igual, puede ser solo permisos de fila vacía
+      } else {
+        throw new Error('No se encontraron las tablas. Usa "Ver SQL de la tabla" para crearlas en tu proyecto.');
+      }
+    }
+    supa = client;
+    return true;
+  }catch(err){
+    supa = null;
+    throw err;
+  }
+}
+
+async function fetchAllFromSupabase(){
+  const rc = state.roomCode;
+  const [rooms, elements, relations, chat, blog, attachments] = await Promise.all([
+    supa.from('ic_rooms').select('*').eq('room_code', rc).maybeSingle(),
+    supa.from('ic_elements').select('*').eq('room_code', rc).order('created_at'),
+    supa.from('ic_relations').select('*').eq('room_code', rc).order('created_at'),
+    supa.from('ic_chat').select('*').eq('room_code', rc).order('created_at'),
+    supa.from('ic_blog').select('*').eq('room_code', rc).order('created_at'),
+    supa.from('ic_attachments').select('*').eq('room_code', rc).order('created_at'),
+  ]);
+  if(rooms.data){
+    state.modelName = rooms.data.model_name || state.modelName;
+    state.team = rooms.data.team || state.team;
+    state.room = {ready:rooms.data.ready, ready_by:rooms.data.ready_by, ready_at:rooms.data.ready_at};
+  } else {
+    await supa.from('ic_rooms').upsert({
+      room_code: rc, team: state.team, model_name: state.modelName, ready:false
+    });
+  }
+  state.elements = elements.data || [];
+  state.relations = relations.data || [];
+  state.chat = chat.data || [];
+  state.blog = blog.data || [];
+  state.attachments = attachments.data || [];
+}
+
+function subscribeRealtime(){
+  const rc = state.roomCode;
+  const channel = supa.channel('room-'+rc);
+  const tables = [
+    ['ic_elements','elements'],['ic_relations','relations'],
+    ['ic_chat','chat'],['ic_blog','blog'],['ic_attachments','attachments'],
+  ];
+  tables.forEach(([table, key])=>{
+    channel.on('postgres_changes',
+      {event:'*', schema:'public', table, filter:`room_code=eq.${rc}`},
+      (payload)=>{
+        const list = state[key];
+        if(payload.eventType === 'INSERT'){
+          if(!list.find(x=>x.id===payload.new.id)) list.push(payload.new);
+        } else if(payload.eventType === 'UPDATE'){
+          const i = list.findIndex(x=>x.id===payload.new.id);
+          if(i>=0) list[i] = payload.new;
+        } else if(payload.eventType === 'DELETE'){
+          const i = list.findIndex(x=>x.id===payload.old.id);
+          if(i>=0) list.splice(i,1);
+        }
+        renderAll();
+      });
+  });
+  channel.on('postgres_changes',
+    {event:'*', schema:'public', table:'ic_rooms', filter:`room_code=eq.${rc}`},
+    (payload)=>{
+      if(payload.new){
+        state.modelName = payload.new.model_name || state.modelName;
+        state.room = {ready:payload.new.ready, ready_by:payload.new.ready_by, ready_at:payload.new.ready_at};
+        document.getElementById('model-name-input').value = state.modelName;
+        renderSaveStatus();
+      }
+    });
+  channel.subscribe();
+
+  // presencia en vivo
+  presenceChannel = supa.channel('presence-'+rc, {config:{presence:{key:uid}}});
+  presenceChannel.on('presence',{event:'sync'},()=>{
+    const s = presenceChannel.presenceState();
+    onlineUsers = Object.values(s).flat();
+    renderAvatars();
+  });
+  presenceChannel.subscribe(async (status)=>{
+    if(status === 'SUBSCRIBED'){
+      await presenceChannel.track({name: state.user.name, role: state.user.role});
+    }
+  });
+}
+
+/* ---------------- Escritura de datos (Supabase o local) ---------------- */
+async function addElement(block, content){
+  const item = {
+    id: crypto.randomUUID(), room_code: state.roomCode, step: state.step,
+    block, content, author: state.user.name, role: state.user.role,
+    created_at: new Date().toISOString(),
+  };
+  if(supa){
+    const {error} = await supa.from('ic_elements').insert(item);
+    if(error){ toast('Error al guardar: '+error.message); return; }
+  } else {
+    state.elements.push(item); saveLocal();
+  }
+  if(!supa) renderAll();
+}
+
+async function deleteElement(id){
+  if(supa){
+    await supa.from('ic_elements').delete().eq('id', id);
+    await supa.from('ic_relations').delete().or(`from_id.eq.${id},to_id.eq.${id}`);
+  } else {
+    state.elements = state.elements.filter(e=>e.id!==id);
+    state.relations = state.relations.filter(r=>r.from_id!==id && r.to_id!==id);
+    saveLocal();
+  }
+  if(state.selectedElement === id) state.selectedElement = null;
+  if(!supa) renderAll();
+}
+
+async function addRelation(fromId, toId, description){
+  const item = {
+    id: crypto.randomUUID(), room_code: state.roomCode, step: state.step,
+    from_id: fromId, to_id: toId, description, author: state.user.name,
+    created_at: new Date().toISOString(),
+  };
+  if(supa){
+    const {error} = await supa.from('ic_relations').insert(item);
+    if(error){ toast('Error al guardar: '+error.message); return; }
+  } else {
+    state.relations.push(item); saveLocal();
+  }
+  if(!supa) renderAll();
+}
+
+async function deleteRelation(id){
+  if(supa){
+    await supa.from('ic_relations').delete().eq('id', id);
+  } else {
+    state.relations = state.relations.filter(r=>r.id!==id);
+    saveLocal();
+  }
+  if(!supa) renderAll();
+}
+
+async function addChat(content){
+  const item = {
+    id: crypto.randomUUID(), room_code: state.roomCode, author: state.user.name,
+    role: state.user.role, content, created_at: new Date().toISOString(),
+  };
+  if(supa){
+    const {error} = await supa.from('ic_chat').insert(item);
+    if(error){ toast('Error al enviar: '+error.message); return; }
+  } else {
+    state.chat.push(item); saveLocal();
+  }
+  if(!supa) renderAll();
+}
+
+async function addBlogPost(block, content){
+  const item = {
+    id: crypto.randomUUID(), room_code: state.roomCode, block, author: state.user.name,
+    role: state.user.role, content, created_at: new Date().toISOString(),
+  };
+  if(supa){
+    const {error} = await supa.from('ic_blog').insert(item);
+    if(error){ toast('Error al publicar: '+error.message); return; }
+  } else {
+    state.blog.push(item); saveLocal();
+  }
+  if(!supa) renderAll();
+}
+
+async function addAttachment(block, name, url, note){
+  const item = {
+    id: crypto.randomUUID(), room_code: state.roomCode, block, step: state.step,
+    name, url: url||null, note: note||null, author: state.user.name,
+    created_at: new Date().toISOString(),
+  };
+  if(supa){
+    const {error} = await supa.from('ic_attachments').insert(item);
+    if(error){ toast('Error al adjuntar: '+error.message); return; }
+  } else {
+    state.attachments.push(item); saveLocal();
+  }
+  if(!supa) renderAll();
+}
+
+async function deleteAttachment(id){
+  if(supa){ await supa.from('ic_attachments').delete().eq('id', id); }
+  else { state.attachments = state.attachments.filter(a=>a.id!==id); saveLocal(); }
+  if(!supa) renderAll();
+}
+
+async function updateModelName(name){
+  state.modelName = name;
+  if(supa){
+    await supa.from('ic_rooms').upsert({room_code: state.roomCode, model_name:name, team: state.team});
+  } else {
+    saveLocal();
+  }
+}
+
+async function markReadyToShare(){
+  const now = new Date().toISOString();
+  state.room = {ready:true, ready_by: state.user.name, ready_at: now};
+  if(supa){
+    await supa.from('ic_rooms').upsert({
+      room_code: state.roomCode, model_name: state.modelName, team: state.team,
+      ready:true, ready_by: state.user.name, ready_at: now,
+    });
+  } else {
+    saveLocal();
+  }
+  renderSaveStatus();
+  toast('Canvas marcado como listo para compartir con tu profesor.');
+}
+
+/* ---------------- Render ---------------- */
+function currentElements(){
+  return state.elements.filter(e=>e.step===state.step);
+}
+function currentRelations(){
+  return state.relations.filter(r=>r.step===state.step);
+}
+function elementById(id){
+  return state.elements.find(e=>e.id===id);
+}
+
+function renderTopbar(){
+  document.getElementById('room-tag').textContent = 'SALA ' + (state.roomCode||'—');
+  const pill = document.getElementById('mode-pill');
+  if(supa){ pill.textContent='EN VIVO'; pill.className='mode-pill live'; }
+  else{ pill.textContent='LOCAL'; pill.className='mode-pill local'; }
+  renderAvatars();
+  renderSaveStatus();
+}
+function renderAvatars(){
+  const wrap = document.getElementById('avatars');
+  wrap.innerHTML = '';
+  let users = supa ? onlineUsers : [state.user];
+  if(users.length===0) users = [state.user];
+  users.slice(0,5).forEach(u=>{
+    wrap.appendChild(el(`<div class="avatar" title="${escapeHtml(u.name||'')} · ${escapeHtml(u.role||'')}">${escapeHtml(initials(u.name))}</div>`));
+  });
+}
+function renderSaveStatus(){
+  const s = document.getElementById('save-status');
+  if(state.room.ready){
+    s.textContent = `Compartido ✓ por ${state.room.ready_by||'—'} · ${fmtTime(state.room.ready_at)}`;
+    s.className = 'save-status ready';
+  } else {
+    s.textContent = 'Aún no compartido con el profesor';
+    s.className = 'save-status';
+  }
+}
+
+function renderModelbar(){
+  const input = document.getElementById('model-name-input');
+  if(document.activeElement !== input) input.value = state.modelName;
+  document.getElementById('stat-line').textContent =
+    `${currentElements().length} elementos · ${currentRelations().length} relaciones · paso: ${STEPS[state.step].label.toLowerCase()}`;
+}
+
+function renderControls(){
+  document.querySelectorAll('#step-seg button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.step === state.step);
+  });
+  document.querySelectorAll('#rel-seg button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.mode === state.relMode);
+  });
+  document.getElementById('step-banner').innerHTML =
+    `<b>${STEPS[state.step].label}</b>${escapeHtml(STEPS[state.step].banner)}`;
+}
+
+function renderCanvas(){
+  const grid = document.getElementById('canvas-grid');
+  // conserva el svg overlay, borra el resto
+  grid.querySelectorAll('.block').forEach(n=>n.remove());
+
+  BLOCKS.forEach(b=>{
+    const items = currentElements().filter(e=>e.block===b.id);
+    const blockEl = el(`
+      <div class="block" style="grid-column:${b.col};grid-row:${b.row};" data-block="${b.id}">
+        <div class="block-head">
+          <div>
+            <div class="block-title">${escapeHtml(b.name)}</div>
+            <div class="block-desc">${escapeHtml(b.desc)}</div>
+          </div>
+          <button class="block-add" title="Agregar elemento" data-add="${b.id}">+</button>
+        </div>
+        <div class="block-items" data-items="${b.id}"></div>
+      </div>
+    `);
+    const itemsWrap = blockEl.querySelector('[data-items]');
+    items.forEach(it=>{
+      const n = el(`
+        <div class="note ${state.selectedElement===it.id?'selected':''}" data-note="${it.id}">
+          ${escapeHtml(it.content)}
+          <div class="note-meta">${escapeHtml(it.author||'')}</div>
+        </div>
+      `);
+      n.addEventListener('click', ()=>{
+        state.selectedElement = it.id;
+        state.selectedBlock = it.block;
+        state.activeTab = 'detalle';
+        renderAll();
+      });
+      itemsWrap.appendChild(n);
+    });
+    blockEl.classList.toggle('dim', state.selectedBlock !== b.id);
+    blockEl.classList.toggle('hoverlit', state.hoveredBlock === b.id);
+    blockEl.addEventListener('click', (ev)=>{
+      if(ev.target.closest('[data-add]') || ev.target.closest('[data-note]')) return;
+      state.selectedBlock = b.id;
+      state.selectedElement = null;
+      renderAll();
+    });
+    blockEl.addEventListener('mouseenter', ()=>{
+      state.hoveredBlock = b.id;
+      updateOverlayVisibility();
+    });
+    blockEl.addEventListener('mouseleave', ()=>{
+      state.hoveredBlock = null;
+      updateOverlayVisibility();
+    });
+    blockEl.querySelector('[data-add]').addEventListener('click', ()=>{
+      state.selectedBlock = b.id;
+      state.activeTab = 'detalle';
+      renderAll();
+      const ta = document.getElementById('new-element-text');
+      if(ta) ta.focus();
+    });
+    grid.appendChild(blockEl);
+  });
+
+  drawRelationLines();
+}
+
+function blockCenterCoords(blockId, gridRect){
+  const node = document.querySelector(`.block[data-block="${blockId}"]`);
+  if(!node) return null;
+  const r = node.getBoundingClientRect();
+  return { x: r.left - gridRect.left + r.width/2, y: r.top - gridRect.top + r.height/2 };
+}
+
+function drawRelationLines(){
+  const svg = document.getElementById('svg-overlay');
+  svg.innerHTML = '';
+  const grid = document.getElementById('canvas-grid');
+  const gridRect = grid.getBoundingClientRect();
+  svg.setAttribute('width', gridRect.width);
+  svg.setAttribute('height', gridRect.height);
+
+  const rels = currentRelations();
+  const seenPairs = {};
+  rels.forEach(r=>{
+    const from = elementById(r.from_id), to = elementById(r.to_id);
+    if(!from || !to) return;
+    const key = [from.block, to.block].sort().join('|');
+    if(from.block === to.block) return; // sin línea dentro del mismo bloque
+    const p1 = blockCenterCoords(from.block, gridRect);
+    const p2 = blockCenterCoords(to.block, gridRect);
+    if(!p1 || !p2) return;
+    const jitter = (seenPairs[key]||0) * 4; seenPairs[key] = (seenPairs[key]||0)+1;
+    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+    line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y+jitter);
+    line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y+jitter);
+    line.dataset.blockA = from.block; line.dataset.blockB = to.block;
+    const title = document.createElementNS('http://www.w3.org/2000/svg','title');
+    title.textContent = `${from.content} → ${to.content}: ${r.description||'(sin descripción)'}`;
+    line.appendChild(title);
+    svg.appendChild(line);
+  });
+  updateOverlayVisibility();
+}
+
+function updateOverlayVisibility(){
+  const svg = document.getElementById('svg-overlay');
+  const lines = svg.querySelectorAll('line');
+  if(state.relMode === 'ocultas'){
+    lines.forEach(l=>l.style.display='none');
+  } else if(state.relMode === 'todas'){
+    lines.forEach(l=>l.style.display='block');
+  } else { // hover
+    lines.forEach(l=>{
+      const show = state.hoveredBlock && (l.dataset.blockA===state.hoveredBlock || l.dataset.blockB===state.hoveredBlock);
+      l.style.display = show ? 'block' : 'none';
+    });
+  }
+}
+
+/* -------- Panel: Detalle -------- */
+function renderDetalle(){
+  const b = BLOCK_BY_ID[state.selectedBlock];
+  const items = currentElements().filter(e=>e.block===b.id);
+  const relsHere = currentRelations().filter(r=>{
+    const f = elementById(r.from_id), t = elementById(r.to_id);
+    return (f && f.block===b.id) || (t && t.block===b.id);
+  });
+  const atts = state.attachments.filter(a=>a.block===b.id);
+
+  const panel = document.getElementById('tab-detalle');
+  panel.innerHTML = '';
+  panel.appendChild(el(`
+    <div>
+      <div class="selected-block-name">${escapeHtml(b.name)}</div>
+      <div class="selected-block-desc">${escapeHtml(b.desc)}</div>
+
+      <div class="form-block">
+        <div class="panel-sub">Nuevo elemento (${STEPS[state.step].label.toLowerCase()})</div>
+        <textarea class="mini" id="new-element-text" placeholder="Escribe una palabra o frase corta..."></textarea>
+        <button class="btn-mini" id="btn-add-element">Agregar al tablero</button>
+      </div>
+
+      <div class="panel-sub">Elementos en este bloque</div>
+      <div id="detalle-items"></div>
+
+      <div class="form-block">
+        <div class="panel-sub">Nueva relación</div>
+        <label style="font-size:10.5px;color:var(--grey);">Desde</label>
+        <select class="mini" id="rel-from"></select>
+        <label style="font-size:10.5px;color:var(--grey);margin-top:6px;display:block;">Hacia</label>
+        <select class="mini" id="rel-to"></select>
+        <textarea class="mini" id="rel-desc" placeholder="Argumenta la relación entre estos dos elementos..." style="margin-top:6px;"></textarea>
+        <button class="btn-mini" id="btn-add-relation">Crear relación</button>
+      </div>
+
+      <div class="panel-sub">Relaciones de este bloque</div>
+      <div id="detalle-rels"></div>
+
+      <div class="form-block">
+        <div class="panel-sub">Archivos de apoyo</div>
+        <input class="mini" id="att-name" placeholder="Nombre del archivo o recurso" style="margin-bottom:6px;">
+        <input class="mini" id="att-url" placeholder="Enlace (Drive, Sheets, imagen...)" style="margin-bottom:6px;">
+        <textarea class="mini" id="att-note" placeholder="Nota u observación (opcional)"></textarea>
+        <button class="btn-mini" id="btn-add-att">Adjuntar</button>
+      </div>
+      <div id="detalle-atts"></div>
+    </div>
+  `));
+
+  const itemsWrap = panel.querySelector('#detalle-items');
+  if(items.length===0){
+    itemsWrap.appendChild(el(`<div class="empty-msg">Aún no hay elementos en este bloque para el paso "${STEPS[state.step].label}".</div>`));
+  }
+  items.forEach(it=>{
+    const row = el(`
+      <div class="item-row">
+        <button class="del" data-del-el="${it.id}" title="Eliminar">✕</button>
+        ${escapeHtml(it.content)}
+        <div class="meta">${escapeHtml(it.author||'')}${it.role?' · '+escapeHtml(it.role):''} · ${fmtTime(it.created_at)}</div>
+      </div>
+    `);
+    itemsWrap.appendChild(row);
+  });
+
+  const relsWrap = panel.querySelector('#detalle-rels');
+  if(relsHere.length===0){
+    relsWrap.appendChild(el(`<div class="empty-msg">Sin relaciones registradas todavía.</div>`));
+  }
+  relsHere.forEach(r=>{
+    const f = elementById(r.from_id), t = elementById(r.to_id);
+    if(!f || !t) return;
+    const row = el(`
+      <div class="item-row">
+        <button class="del" data-del-rel="${r.id}" title="Eliminar">✕</button>
+        <b>${escapeHtml(f.content)}</b> → <b>${escapeHtml(t.content)}</b>
+        ${r.description?`<div class="rel-desc">${escapeHtml(r.description)}</div>`:''}
+        <div class="meta">${escapeHtml(r.author||'')} · ${fmtTime(r.created_at)}</div>
+      </div>
+    `);
+    relsWrap.appendChild(row);
+  });
+
+  const attsWrap = panel.querySelector('#detalle-atts');
+  if(atts.length===0){
+    attsWrap.appendChild(el(`<div class="empty-msg">Sin archivos adjuntos para este bloque.</div>`));
+  }
+  atts.forEach(a=>{
+    const row = el(`
+      <div class="item-row">
+        <button class="del" data-del-att="${a.id}" title="Eliminar">✕</button>
+        <b>${escapeHtml(a.name)}</b>
+        ${a.url?`<div><a href="${escapeHtml(a.url)}" target="_blank" rel="noopener">${escapeHtml(a.url)}</a></div>`:''}
+        ${a.note?`<div class="rel-desc">${escapeHtml(a.note)}</div>`:''}
+        <div class="meta">${escapeHtml(a.author||'')} · ${fmtTime(a.created_at)}</div>
+      </div>
+    `);
+    attsWrap.appendChild(row);
+  });
+
+  // selects de relación: todos los elementos del paso actual, de cualquier bloque
+  const allCurrent = currentElements();
+  const fromSel = panel.querySelector('#rel-from');
+  const toSel = panel.querySelector('#rel-to');
+  [fromSel, toSel].forEach(sel=>{
+    sel.innerHTML = allCurrent.map(e=>
+      `<option value="${e.id}">[${BLOCK_BY_ID[e.block].name}] ${escapeHtml(e.content)}</option>`
+    ).join('') || '<option value="">— agrega elementos primero —</option>';
+  });
+
+  panel.querySelector('#btn-add-element').addEventListener('click', ()=>{
+    const ta = panel.querySelector('#new-element-text');
+    const val = ta.value.trim();
+    if(!val) return;
+    addElement(b.id, val);
+    ta.value='';
+  });
+  panel.querySelectorAll('[data-del-el]').forEach(btn=>{
+    btn.addEventListener('click', ()=>deleteElement(btn.dataset.delEl));
+  });
+  panel.querySelector('#btn-add-relation').addEventListener('click', ()=>{
+    const f = fromSel.value, t = toSel.value;
+    const d = panel.querySelector('#rel-desc').value.trim();
+    if(!f || !t || f===t){ toast('Elige dos elementos distintos.'); return; }
+    addRelation(f, t, d);
+    panel.querySelector('#rel-desc').value='';
+  });
+  panel.querySelectorAll('[data-del-rel]').forEach(btn=>{
+    btn.addEventListener('click', ()=>deleteRelation(btn.dataset.delRel));
+  });
+  panel.querySelector('#btn-add-att').addEventListener('click', ()=>{
+    const name = panel.querySelector('#att-name').value.trim();
+    const url = panel.querySelector('#att-url').value.trim();
+    const note = panel.querySelector('#att-note').value.trim();
+    if(!name){ toast('Ponle un nombre al archivo o recurso.'); return; }
+    addAttachment(b.id, name, url, note);
+    panel.querySelector('#att-name').value='';
+    panel.querySelector('#att-url').value='';
+    panel.querySelector('#att-note').value='';
+  });
+  panel.querySelectorAll('[data-del-att]').forEach(btn=>{
+    btn.addEventListener('click', ()=>deleteAttachment(btn.dataset.delAtt));
+  });
+}
+
+/* -------- Panel: Chat -------- */
+function renderChat(){
+  const panel = document.getElementById('tab-chat');
+  panel.innerHTML = '';
+  panel.appendChild(el(`<div class="panel-title">Chat del equipo</div>`));
+  const list = el(`<div id="chat-list"></div>`);
+  panel.appendChild(list);
+  if(state.chat.length===0){
+    list.appendChild(el(`<div class="empty-msg">Nadie ha escrito todavía. Comiencen la discusión aquí.</div>`));
+  }
+  state.chat.forEach(m=>{
+    list.appendChild(el(`
+      <div class="msg">
+        <div class="who">${escapeHtml(m.author||'—')} <span>${escapeHtml(m.role||'')} · ${fmtTime(m.created_at)}</span></div>
+        <div class="body">${escapeHtml(m.content)}</div>
+      </div>
+    `));
+  });
+  const row = el(`
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Escribe un mensaje...">
+      <button id="chat-send">Enviar</button>
+    </div>
+  `);
+  panel.appendChild(row);
+  const send = ()=>{
+    const inp = row.querySelector('#chat-input');
+    const val = inp.value.trim();
+    if(!val) return;
+    addChat(val);
+    inp.value='';
+  };
+  row.querySelector('#chat-send').addEventListener('click', send);
+  row.querySelector('#chat-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') send(); });
+  list.scrollTop = list.scrollHeight;
+}
+
+/* -------- Panel: Blog -------- */
+function renderBlog(){
+  const panel = document.getElementById('tab-blog');
+  panel.innerHTML = '';
+  panel.appendChild(el(`<div class="panel-title">Blog por bloque</div>`));
+  const form = el(`
+    <div class="form-block" style="margin-top:0;border-top:none;padding-top:0;">
+      <label style="font-size:10.5px;color:var(--grey);">Bloque</label>
+      <select class="mini" id="blog-block"></select>
+      <textarea class="mini" id="blog-text" placeholder="Comparte un argumento, fortaleza, debilidad o idea sobre este bloque..." style="margin-top:6px;"></textarea>
+      <button class="btn-mini" id="blog-post">Publicar</button>
+    </div>
+  `);
+  panel.appendChild(form);
+  const sel = form.querySelector('#blog-block');
+  sel.innerHTML = BLOCKS.map(b=>`<option value="${b.id}" ${b.id===state.selectedBlock?'selected':''}>${escapeHtml(b.name)}</option>`).join('');
+
+  panel.appendChild(el(`<div class="panel-sub">Publicaciones</div>`));
+  const list = el(`<div id="blog-list"></div>`);
+  panel.appendChild(list);
+  const posts = state.blog.filter(p=>p.block===sel.value).slice().reverse();
+  if(posts.length===0){
+    list.appendChild(el(`<div class="empty-msg">Sin publicaciones todavía para "${escapeHtml(BLOCK_BY_ID[sel.value].name)}".</div>`));
+  }
+  posts.forEach(p=>{
+    list.appendChild(el(`
+      <div class="msg">
+        <div class="who">${escapeHtml(p.author||'—')} <span>${escapeHtml(p.role||'')} · ${fmtTime(p.created_at)}</span></div>
+        <div class="body">${escapeHtml(p.content)}</div>
+      </div>
+    `));
+  });
+
+  sel.addEventListener('change', renderBlog);
+  form.querySelector('#blog-post').addEventListener('click', ()=>{
+    const val = form.querySelector('#blog-text').value.trim();
+    if(!val) return;
+    addBlogPost(sel.value, val);
+  });
+}
+
+/* -------- Panel: Guía -------- */
+function renderGuia(){
+  const panel = document.getElementById('tab-guia');
+  panel.innerHTML = '';
+  const b = BLOCK_BY_ID[state.selectedBlock];
+  panel.appendChild(el(`<div class="panel-title">Guía de preguntas</div>`));
+  panel.appendChild(el(`<span class="guide-step-label">${STEPS[state.step].label}</span>`));
+  panel.appendChild(el(`<div class="selected-block-name" style="font-size:14px;">${escapeHtml(b.name)}</div>`));
+  const qs = (GUIDE[state.step] && GUIDE[state.step][b.id]) || [];
+  qs.forEach(q=>{
+    panel.appendChild(el(`<div class="guide-q">${escapeHtml(q)}</div>`));
+  });
+  panel.appendChild(el(`
+    <div class="empty-msg" style="margin-top:14px;">
+      Usa estas preguntas como punto de partida en el chat o en el blog de este bloque antes
+      de escribir el elemento final en el tablero.
+    </div>
+  `));
+}
+
+/* -------- Panel: Datos -------- */
+function renderDatos(){
+  const panel = document.getElementById('tab-datos');
+  panel.innerHTML = '';
+  panel.appendChild(el(`<div class="panel-title">Estado de la sala</div>`));
+  const kvs = [
+    ['Código de sala', state.roomCode],
+    ['Equipo', state.team||'—'],
+    ['Conexión', supa ? 'Supabase (tiempo real)' : 'Local (este navegador)'],
+    ['Elementos totales', String(state.elements.length)],
+    ['Relaciones totales', String(state.relations.length)],
+    ['Mensajes de chat', String(state.chat.length)],
+    ['Publicaciones de blog', String(state.blog.length)],
+    ['Compartido con profesor', state.room.ready ? `Sí · ${fmtTime(state.room.ready_at)}` : 'No'],
+  ];
+  const wrap = el(`<div></div>`);
+  kvs.forEach(([k,v])=>{
+    wrap.appendChild(el(`<div class="kv"><span>${escapeHtml(k)}</span><b>${escapeHtml(v)}</b></div>`));
+  });
+  panel.appendChild(wrap);
+
+  const actions = el(`
+    <div class="datos-actions">
+      <button class="btn btn-outline" id="btn-export">Exportar canvas (.json)</button>
+      <button class="btn btn-outline" id="btn-copy-code">Copiar código de sala</button>
+      <button class="sql-link" id="btn-datos-sql" style="text-align:left;">Ver SQL de la tabla</button>
+    </div>
+  `);
+  panel.appendChild(actions);
+
+  actions.querySelector('#btn-export').addEventListener('click', ()=>{
+    const data = {
+      modelName: state.modelName, team: state.team, roomCode: state.roomCode,
+      elements: state.elements, relations: state.relations,
+      chat: state.chat, blog: state.blog, attachments: state.attachments,
+      room: state.room, exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `innova-canvas-${state.roomCode}.json`;
+    a.click();
+  });
+  actions.querySelector('#btn-copy-code').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(state.roomCode);
+    toast('Código de sala copiado.');
+  });
+  actions.querySelector('#btn-datos-sql').addEventListener('click', showSqlModal);
+}
+
+function renderTabs(){
+  document.querySelectorAll('.tabs button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab === state.activeTab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    p.classList.toggle('active', p.id === 'tab-'+state.activeTab);
+  });
+}
+
+function renderAll(){
+  renderTopbar();
+  renderModelbar();
+  renderControls();
+  renderCanvas();
+  renderTabs();
+  if(state.activeTab==='detalle') renderDetalle();
+  if(state.activeTab==='chat') renderChat();
+  if(state.activeTab==='blog') renderBlog();
+  if(state.activeTab==='guia') renderGuia();
+  if(state.activeTab==='datos') renderDatos();
+}
+
+/* ---------------- Modal SQL ---------------- */
+function showSqlModal(){
+  const root = document.getElementById('modal-root');
+  root.innerHTML = '';
+  const modal = el(`
+    <div class="modal-backdrop" id="sql-backdrop">
+      <div class="modal">
+        <h3>SQL para tu proyecto de Supabase</h3>
+        <p style="font-size:12.5px;color:var(--grey);line-height:1.5;">
+          Copia y ejecuta esto en el <b>SQL Editor</b> de tu proyecto de Supabase. Crea las tablas
+          necesarias, activa Row Level Security con una política abierta (apta para un ejercicio de
+          clase) y las añade a la publicación de tiempo real.
+        </p>
+        <pre>${escapeHtml(SQL_SCHEMA)}</pre>
+        <div class="close-row">
+          <button class="btn btn-outline" id="sql-copy">Copiar SQL</button>
+          <button class="btn btn-primary" id="sql-close">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  `);
+  root.appendChild(modal);
+  modal.addEventListener('click', (e)=>{ if(e.target.id==='sql-backdrop') root.innerHTML=''; });
+  modal.querySelector('#sql-close').addEventListener('click', ()=>root.innerHTML='');
+  modal.querySelector('#sql-copy').addEventListener('click', ()=>{
+    navigator.clipboard.writeText(SQL_SCHEMA);
+    toast('SQL copiado al portapapeles.');
+  });
+}
+
+/* ---------------- Eventos globales de UI ---------------- */
+document.getElementById('btn-show-sql').addEventListener('click', showSqlModal);
+
+document.getElementById('btn-save-creds').addEventListener('click', async ()=>{
+  const url = document.getElementById('in-url').value.trim();
+  const key = document.getElementById('in-key').value.trim();
+  const status = document.getElementById('creds-status');
+  if(!url || !key){ status.textContent='Pega el Project URL y la anon key.'; status.className='setup-status err'; return; }
+  status.textContent='Conectando...'; status.className='setup-status';
+  try{
+    await connectSupabase(url, key);
+    localStorage.setItem(LS_PREFIX+'supabase-url', url);
+    localStorage.setItem(LS_PREFIX+'supabase-key', key);
+    status.textContent='Conectado. Ahora entra al tablero con el código de tu equipo.';
+    status.className='setup-status ok';
+  }catch(err){
+    status.textContent = 'No se pudo conectar: '+(err.message||err);
+    status.className='setup-status err';
+  }
+});
+
+// precargar credenciales guardadas
+(function preload(){
+  const url = localStorage.getItem(LS_PREFIX+'supabase-url');
+  const key = localStorage.getItem(LS_PREFIX+'supabase-key');
+  if(url) document.getElementById('in-url').value = url;
+  if(key) document.getElementById('in-key').value = key;
+})();
+
+document.getElementById('btn-enter').addEventListener('click', async ()=>{
+  const name = document.getElementById('in-name').value.trim();
+  const role = document.getElementById('in-role').value.trim();
+  const code = document.getElementById('in-code').value.trim().toUpperCase();
+  const team = document.getElementById('in-team').value.trim();
+  const model = document.getElementById('in-model').value.trim();
+  if(!name || !code){
+    toast('Escribe al menos tu nombre y el código de la sala.');
+    return;
+  }
+  state.user = {name, role};
+  state.roomCode = code;
+  state.team = team;
+  state.modelName = model || 'Modelo de negocio sin título';
+
+  const url = document.getElementById('in-url').value.trim();
+  const key = document.getElementById('in-key').value.trim();
+  if(url && key && !supa){
+    try{ await connectSupabase(url, key); }
+    catch(err){ toast('No se pudo conectar a Supabase, se usará modo local: '+(err.message||err)); }
+  }
+
+  if(supa){
+    try{
+      await fetchAllFromSupabase();
+      subscribeRealtime();
+    }catch(err){
+      toast('Error leyendo datos de Supabase, se usará modo local: '+(err.message||err));
+      supa = null;
+      loadLocal();
+    }
+  } else {
+    loadLocal();
+    if(model) state.modelName = model; // el modelo escrito al entrar tiene prioridad la primera vez
+  }
+
+  document.getElementById('setup-view').classList.add('hidden');
+  document.getElementById('board-view').classList.remove('hidden');
+  renderAll();
+});
+
+document.getElementById('model-name-input').addEventListener('change', (e)=>{
+  updateModelName(e.target.value.trim() || 'Modelo de negocio sin título');
+  renderModelbar();
+});
+
+document.getElementById('step-seg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  state.step = btn.dataset.step;
+  state.selectedElement = null;
+  renderAll();
+});
+document.getElementById('rel-seg').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  state.relMode = btn.dataset.mode;
+  renderControls();
+  updateOverlayVisibility();
+});
+document.querySelector('.tabs').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button'); if(!btn) return;
+  state.activeTab = btn.dataset.tab;
+  renderAll();
+});
+document.getElementById('btn-save-share').addEventListener('click', ()=>{
+  if(confirm('¿El equipo confirma que este canvas está listo para compartirse con el profesor?')){
+    markReadyToShare();
+  }
+});
+
+window.addEventListener('resize', ()=>{ if(!document.getElementById('board-view').classList.contains('hidden')) drawRelationLines(); });
+</script>
+</body>
+</html>
